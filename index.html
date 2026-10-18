@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ijajkeyboard gym schedule</title>
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--text:#1d1d1b;--muted:#6b6a65;--accent:#d85a30;--accent-text:#fff;--border:#e4e2da;--rest:#a32d2d;--ok:#1d9e75;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171716;--card:#232321;--text:#f1efe8;--muted:#a8a69d;--accent:#ee7b52;--accent-text:#1a0d07;--border:#35342f;--rest:#f09595;--ok:#5dcaa5;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#171716;--card:#232321;--text:#f1efe8;--muted:#a8a69d;--accent:#ee7b52;--accent-text:#1a0d07;--border:#35342f;--rest:#f09595;--ok:#5dcaa5;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5}
+main{max-width:560px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:20px;margin:0 0 2px;letter-spacing:.3px}
+.sub{color:var(--muted);font-size:14px;margin:0 0 18px}
+.clock{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.time{font-size:38px;font-weight:700;font-variant-numeric:tabular-nums}
+.date{color:var(--muted);font-size:14px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.today{font-size:22px;font-weight:700;margin:4px 0 2px}
+.focus{color:var(--muted);font-size:14px;margin:0 0 12px}
+ul{list-style:none;padding:0;margin:0 0 16px}
+li{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--border);font-size:15px}
+li span:last-child{color:var(--muted);white-space:nowrap}
+.rest{color:var(--rest);font-size:18px;font-weight:600;padding:14px 0 18px}
+button{width:100%;border:0;border-radius:12px;padding:14px;font-size:16px;font-weight:700;background:var(--accent);color:var(--accent-text);cursor:pointer}
+button:active{transform:scale(.98)}
+.msg{display:none;margin-top:14px;text-align:center;font-size:18px;font-weight:700;color:var(--ok)}
+.msg.show{display:block}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:18px}
+.d{text-align:center;font-size:12px;padding:8px 0;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--muted)}
+.d.now{background:var(--accent);color:var(--accent-text);border-color:var(--accent);font-weight:700}
+</style>
+</head>
+<body>
+<main>
+  <h1>ijajkeyboard gym schedule</h1>
+  <p class="sub">Notes jadwal gym · rest day Rabu &amp; Minggu</p>
+
+  <div class="clock">
+    <div class="time" id="time">--:--:--</div>
+    <div class="date" id="date"></div>
+  </div>
+
+  <div class="card">
+    <div class="label">Hari ini waktunya:</div>
+    <div class="today" id="title"></div>
+    <p class="focus" id="focus"></p>
+    <div id="list"></div>
+    <button id="ok" type="button">OK</button>
+    <div class="msg" id="msg" role="status">Selamat berolahraga! 💪</div>
+  </div>
+
+  <div class="week" id="week"></div>
+</main>
+<script>
+var DAYS=["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+var PLAN={
+1:{t:"Upper Body",f:"Fokus kekuatan tubuh bagian atas",x:[["Bench Press","3 x 6–8"],["Lat Pulldown / Pull Up","3 x 8–10"],["Overhead Dumbbell Press","3 x 8–10"],["Barbell/Dumbbell Row","3 x 8–10"],["Incline Dumbbell Fly","3 x 10–12"]]},
+2:{t:"Lower Body",f:"Fokus kekuatan otot besar kaki",x:[["Barbell Squat / Leg Press","3 x 6–8"],["Romanian Deadlift","3 x 8–10"],["Leg Extension","3 x 10–12"],["Lying Leg Curl","3 x 10–12"],["Calf Raises","4 x 12–15"]]},
+3:{t:"REST DAY",f:"Istirahat total",x:[]},
+4:{t:"Push",f:"Hipertrofi dada, bahu, tricep",x:[["Incline Dumbbell Press","3 x 8–10"],["Chest Fly (Cable/Machine)","3 x 10–12"],["Lateral Raises","4 x 12–15"],["Tricep Overhead Extension","3 x 10–12"],["Tricep Pushdown (Cable)","3 x 12–15"]]},
+5:{t:"Pull",f:"Hipertrofi punggung &amp; bicep",x:[["Barbell / Chest-Supported Row","3 x 8–10"],["Seated Cable Row","3 x 10–12"],["Reverse Fly","3 x 12–15"],["Barbell / EZ-Bar Curl","3 x 8–10"],["Hammer Curl","3 x 10–12"]]},
+6:{t:"Legs",f:"Hipertrofi kaki &amp; perut",x:[["Goblet / Bulgarian Split Squat","3 x 10–12"],["Walking Lunges","3 x 12 langkah"],["Seated Calf Raises","4 x 12–15"],["Hanging Leg Raises","3 x semampunya"],["Plank","3 x 1 menit"]]},
+0:{t:"REST DAY",f:"Istirahat total",x:[]}
+};
+var order=[1,2,3,4,5,6,0], shown=-1;
+function pad(n){return n<10?"0"+n:""+n}
+function render(d){
+  var p=PLAN[d], html="";
+  document.getElementById("title").textContent=DAYS[d]+" — "+p.t;
+  document.getElementById("focus").innerHTML=p.f;
+  if(!p.x.length){html='<div class="rest">🔴 Hari ini istirahat. Tidur 7–8 jam &amp; makan cukup ya.</div>'}
+  else{html="<ul>"+p.x.map(function(e){return "<li><span>"+e[0]+"</span><span>"+e[1]+"</span></li>"}).join("")+"</ul>"}
+  document.getElementById("list").innerHTML=html;
+  document.getElementById("msg").classList.remove("show");
+  var w=document.getElementById("week");
+  w.innerHTML=order.map(function(i){return '<div class="d'+(i===d?' now':'')+'">'+DAYS[i].slice(0,3)+'</div>'}).join("");
+}
+function tick(){
+  var n=new Date(), d=n.getDay();
+  document.getElementById("time").textContent=pad(n.getHours())+":"+pad(n.getMinutes())+":"+pad(n.getSeconds());
+  document.getElementById("date").textContent=DAYS[d]+", "+n.getDate()+"/"+(n.getMonth()+1)+"/"+n.getFullYear();
+  if(d!==shown){shown=d;render(d)}
+}
+document.getElementById("ok").addEventListener("click",function(){
+  document.getElementById("msg").classList.add("show");
+});
+tick();setInterval(tick,1000);
+</script>
+</body>
+</html>
