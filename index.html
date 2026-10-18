@@ -22,8 +22,14 @@ h1{font-size:20px;margin:0 0 2px;letter-spacing:.3px}
 .today{font-size:22px;font-weight:700;margin:4px 0 2px}
 .focus{color:var(--muted);font-size:14px;margin:0 0 12px}
 ul{list-style:none;padding:0;margin:0 0 16px}
-li{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--border);font-size:15px}
-li span:last-child{color:var(--muted);white-space:nowrap}
+.note{color:var(--muted);font-size:12px;margin:0 0 8px}
+li{display:grid;grid-template-columns:112px 1fr;gap:14px;align-items:center;padding:10px 0;border-top:1px solid var(--border);font-size:15px}
+.n{font-weight:600}.s{display:block;color:var(--muted);font-size:13px;font-weight:400}
+.fg{width:112px;height:84px;background:var(--bg);border-radius:12px;fill:none;stroke:var(--text);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.fg circle{fill:var(--bg)}
+.fg .g{stroke:var(--muted);opacity:.4;stroke-width:2}
+.fg .x{stroke:var(--muted);opacity:.7;stroke-width:1.6}
+.fg .q{stroke:var(--accent);fill:var(--accent);fill-opacity:.25}
 .rest{color:var(--rest);font-size:18px;font-weight:600;padding:14px 0 18px}
 button{width:100%;border:0;border-radius:12px;padding:14px;font-size:16px;font-weight:700;background:var(--accent);color:var(--accent-text);cursor:pointer}
 button:active{transform:scale(.98)}
@@ -48,6 +54,7 @@ button:active{transform:scale(.98)}
     <div class="label">Hari ini waktunya:</div>
     <div class="today" id="title"></div>
     <p class="focus" id="focus"></p>
+    <p class="note">Gambar bergerak: garis tebal = gerakan, garis samar = posisi akhir.</p>
     <div id="list"></div>
     <button id="ok" type="button">OK</button>
     <div class="msg" id="msg" role="status">Selamat berolahraga! 💪</div>
@@ -58,23 +65,92 @@ button:active{transform:scale(.98)}
 <script>
 var DAYS=["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
 var PLAN={
-1:{t:"Upper Body",f:"Fokus kekuatan tubuh bagian atas",x:[["Bench Press","3 x 6–8"],["Lat Pulldown / Pull Up","3 x 8–10"],["Overhead Dumbbell Press","3 x 8–10"],["Barbell/Dumbbell Row","3 x 8–10"],["Incline Dumbbell Fly","3 x 10–12"]]},
-2:{t:"Lower Body",f:"Fokus kekuatan otot besar kaki",x:[["Barbell Squat / Leg Press","3 x 6–8"],["Romanian Deadlift","3 x 8–10"],["Leg Extension","3 x 10–12"],["Lying Leg Curl","3 x 10–12"],["Calf Raises","4 x 12–15"]]},
+1:{t:"Upper Body",f:"Fokus kekuatan tubuh bagian atas",x:[["Bench Press","3 x 6–8","bp"],["Lat Pulldown / Pull Up","3 x 8–10","ld"],["Overhead Dumbbell Press","3 x 8–10","oh"],["Barbell/Dumbbell Row","3 x 8–10","rw"],["Incline Dumbbell Fly","3 x 10–12","if"]]},
+2:{t:"Lower Body",f:"Fokus kekuatan otot besar kaki",x:[["Barbell Squat / Leg Press","3 x 6–8","sq"],["Romanian Deadlift","3 x 8–10","rd"],["Leg Extension","3 x 10–12","le"],["Lying Leg Curl","3 x 10–12","lc"],["Calf Raises","4 x 12–15","cr"]]},
 3:{t:"REST DAY",f:"Istirahat total",x:[]},
-4:{t:"Push",f:"Hipertrofi dada, bahu, tricep",x:[["Incline Dumbbell Press","3 x 8–10"],["Chest Fly (Cable/Machine)","3 x 10–12"],["Lateral Raises","4 x 12–15"],["Tricep Overhead Extension","3 x 10–12"],["Tricep Pushdown (Cable)","3 x 12–15"]]},
-5:{t:"Pull",f:"Hipertrofi punggung &amp; bicep",x:[["Barbell / Chest-Supported Row","3 x 8–10"],["Seated Cable Row","3 x 10–12"],["Reverse Fly","3 x 12–15"],["Barbell / EZ-Bar Curl","3 x 8–10"],["Hammer Curl","3 x 10–12"]]},
-6:{t:"Legs",f:"Hipertrofi kaki &amp; perut",x:[["Goblet / Bulgarian Split Squat","3 x 10–12"],["Walking Lunges","3 x 12 langkah"],["Seated Calf Raises","4 x 12–15"],["Hanging Leg Raises","3 x semampunya"],["Plank","3 x 1 menit"]]},
+4:{t:"Push",f:"Hipertrofi dada, bahu, tricep",x:[["Incline Dumbbell Press","3 x 8–10","ip"],["Chest Fly (Cable/Machine)","3 x 10–12","cf"],["Lateral Raises","4 x 12–15","lr"],["Tricep Overhead Extension","3 x 10–12","te"],["Tricep Pushdown (Cable)","3 x 12–15","pd"]]},
+5:{t:"Pull",f:"Hipertrofi punggung &amp; bicep",x:[["Barbell / Chest-Supported Row","3 x 8–10","rw"],["Seated Cable Row","3 x 10–12","sr"],["Reverse Fly","3 x 12–15","rf"],["Barbell / EZ-Bar Curl","3 x 8–10","ec"],["Hammer Curl","3 x 10–12","hc"]]},
+6:{t:"Legs",f:"Hipertrofi kaki &amp; perut",x:[["Goblet / Bulgarian Split Squat","3 x 10–12","gs"],["Walking Lunges","3 x 12 langkah","wl"],["Seated Calf Raises","4 x 12–15","sc"],["Hanging Leg Raises","3 x semampunya","hl"],["Plank","3 x 1 menit","pk"]]},
 0:{t:"REST DAY",f:"Istirahat total",x:[]}
 };
 var order=[1,2,3,4,5,6,0], shown=-1;
+var F="M10 82H110";
+var FIG={
+bp:[[30,61,38,64,68,64,50,60,40,54,86,52,92,78],[30,61,38,64,68,64,39,52,39,41,86,52,92,78],"b","M22 70H86M28 70V82M80 70V82"+F],
+ld:[[47,30,48,40,50,64,53,26,58,12,68,62,70,80],[47,30,48,40,50,64,42,52,57,38,68,62,70,80],"c:58,2","M40 66H62M50 66V82"+F],
+oh:[[60,20,60,30,60,54,66,40,62,28,61,68,62,82],[60,20,60,30,60,54,66,18,63,6,61,68,62,82],"d",F],
+rw:[[84,34,74,38,50,50,75,50,76,62,56,66,52,82],[84,34,74,38,50,50,62,42,72,50,56,66,52,82],"b",F],
+"if":[[36,34,42,42,62,60,52,38,62,36,80,56,84,82],[36,34,42,42,62,60,50,32,58,22,80,56,84,82],"d","M32 40L68 72M60 66V82"+F],
+sq:[[60,20,60,30,60,54,51,38,57,29,61,68,62,82],[67,37,62,46,46,68,54,52,61,44,72,64,62,82],"b",F],
+rd:[[60,20,60,30,60,54,61,43,63,56,61,68,62,82],[80,40,70,42,46,52,71,54,72,66,50,68,52,82],"b",F],
+le:[[41,22,42,32,44,56,49,44,56,52,68,58,70,82],[41,22,42,32,44,56,49,44,56,52,68,58,91,58],"n","M32 28V62H70M40 62V82"+F],
+lc:[[28,52,36,56,66,56,30,62,24,56,88,56,110,56],[28,52,36,56,66,56,30,62,24,56,88,56,88,34],"n","M22 62H96M28 62V82M90 62V82"+F],
+cr:[[60,20,60,30,60,54,60,42,60,54,61,68,62,82],[60,14,60,24,60,48,60,36,60,48,61,62,62,76],"d",F],
+ip:[[36,34,42,42,62,60,52,46,46,38,80,56,84,82],[36,34,42,42,62,60,44,30,45,18,80,56,84,82],"d","M32 40L68 72M60 66V82"+F],
+cf:[[60,20,68,30,60,54,82,32,94,24,64,68,66,82],[60,20,68,30,60,54,74,40,62,46,64,68,66,82],"c:112,8",F,1],
+lr:[[60,20,68,30,60,54,72,42,74,54,64,68,66,82],[60,20,68,30,60,54,84,31,96,30,64,68,66,82],"d",F,1],
+te:[[60,20,60,30,60,54,66,18,56,28,61,68,62,82],[60,20,60,30,60,54,66,18,66,6,61,68,62,82],"d",F],
+pd:[[60,20,60,30,60,54,60,42,68,32,61,68,62,82],[60,20,60,30,60,54,60,42,66,54,61,68,62,82],"c:66,2",F],
+sr:[[52,30,48,40,40,64,64,48,78,54,62,58,84,64],[43,28,42,38,40,64,34,50,54,56,62,58,84,64],"c:112,56","M28 68H64M34 68V82M90 52V82"+F],
+rf:[[60,30,68,40,60,54,72,50,72,62,64,68,66,82],[60,30,68,40,60,54,82,41,94,41,64,68,66,82],"d",F,1],
+ec:[[60,20,60,30,60,54,60,42,64,54,61,68,62,82],[60,20,60,30,60,54,60,42,70,34,61,68,62,82],"b",F],
+hc:[[60,20,60,30,60,54,60,42,64,54,61,68,62,82],[60,20,60,30,60,54,60,42,70,34,61,68,62,82],"d",F],
+gs:[[60,20,60,30,60,54,62,42,68,34,61,68,62,82],[59,33,58,43,50,66,62,54,67,46,74,62,64,82],"d",F],
+wl:[[60,20,60,30,60,54,60,42,60,54,61,68,62,82],[60,30,60,40,58,62,60,52,60,64,76,62,78,82,44,76,30,80],"d",F],
+sc:[[44,22,44,32,44,56,56,44,68,52,68,58,70,82],[44,22,44,32,44,56,56,44,68,48,68,52,70,76],"d","M32 60H58M40 60V82"+F],
+hl:[[52,18,56,26,56,48,58,15,60,4,57,60,58,72],[52,18,56,26,56,48,58,15,60,4,70,50,86,52],"n","M46 4H74"+F],
+pk:[[95,57,87,64,54,72,87,78,100,78,40,76,24,81],[95,57,87,64,54,70,87,78,100,78,40,75,24,81],"n",F]
+};
+function norm(p){return p.length<18?p.concat(p.slice(10,14)):p}
+function X(k,x){return k?120-x:x}
+function pth(p,m){
+  var d="",c=[[2,6,8],[4,10,12],[4,14,16]],k,toe;
+  d=m?"M"+(120-p[2])+" "+p[3]+"H"+p[2]+"M60 "+p[3]+"V"+p[5]:"M"+p[2]+" "+p[3]+"L"+p[4]+" "+p[5];
+  for(k=0;k<(m?2:1);k++){
+    c.forEach(function(a,i){
+      if(m&&i>1)return;
+      d+="M"+X(k,p[a[0]])+" "+p[a[0]+1]+"L"+X(k,p[a[1]])+" "+p[a[1]+1]+"L"+X(k,p[a[2]])+" "+p[a[2]+1];
+    });
+    if(p[13]>=76)d+="M"+X(k,p[12])+" "+p[13]+"L"+X(k,p[12]+8)+" 82";
+  }
+  return d;
+}
+function eq(p,f){
+  var e=f[2],o="",k,x,y=p[9],c;
+  if(e=="n")return "";
+  for(k=0;k<(f[4]?2:1);k++){
+    x=X(k,p[8]);
+    if(e=="b")o+='<circle class="q" cx="'+x+'" cy="'+y+'" r="6"/>';
+    else if(e=="d")o+='<circle class="q" cx="'+x+'" cy="'+y+'" r="3.5"/>';
+    else{c=e.slice(2).split(",");o+='<path class="x" d="M'+X(k,+c[0])+" "+c[1]+"L"+x+" "+y+'"/><circle class="q" cx="'+x+'" cy="'+y+'" r="2.5"/>'}
+  }
+  return o;
+}
+function paint(s,t){
+  var f=FIG[s.getAttribute("data-k")],A=norm(f[0]),B=norm(f[1]),m=f[4]||0;
+  var p=A.map(function(a,i){return Math.round((a+(B[i]-a)*t)*10)/10});
+  s.innerHTML='<path class="x" d="'+f[3]+'"/><path class="g" d="'+pth(B,m)+'"/><path d="'+pth(p,m)+'"/><circle cx="'+p[0]+'" cy="'+p[1]+'" r="5.5"/>'+eq(p,f);
+}
+var still=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+function paintAll(t){
+  var l=document.querySelectorAll(".fg");
+  for(var i=0;i<l.length;i++)paint(l[i],t);
+}
+function loop(ts){
+  paintAll((1-Math.cos(ts/500))/2);
+  requestAnimationFrame(loop);
+}
+if(!still)requestAnimationFrame(loop);
+
 function pad(n){return n<10?"0"+n:""+n}
 function render(d){
   var p=PLAN[d], html="";
   document.getElementById("title").textContent=DAYS[d]+" — "+p.t;
   document.getElementById("focus").innerHTML=p.f;
   if(!p.x.length){html='<div class="rest">🔴 Hari ini istirahat. Tidur 7–8 jam &amp; makan cukup ya.</div>'}
-  else{html="<ul>"+p.x.map(function(e){return "<li><span>"+e[0]+"</span><span>"+e[1]+"</span></li>"}).join("")+"</ul>"}
+  else{html="<ul>"+p.x.map(function(e){return '<li><svg class="fg" viewBox="0 0 120 90" role="img" aria-label="Ilustrasi '+e[0]+'" data-k="'+e[2]+'"></svg><div class="n">'+e[0]+'<span class="s">'+e[1]+'</span></div></li>'}).join("")+"</ul>"}
   document.getElementById("list").innerHTML=html;
+  paintAll(0);
   document.getElementById("msg").classList.remove("show");
   var w=document.getElementById("week");
   w.innerHTML=order.map(function(i){return '<div class="d'+(i===d?' now':'')+'">'+DAYS[i].slice(0,3)+'</div>'}).join("");
